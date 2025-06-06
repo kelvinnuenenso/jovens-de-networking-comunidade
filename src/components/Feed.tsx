@@ -1,153 +1,233 @@
 
 import React from 'react';
-import { Heart, MessageCircle, Share, Pin } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Heart, MessageCircle, Share, Pin, TrendingUp, Users, Calendar, Plus, Image, Hash, Send } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export const Feed = () => {
   const posts = [
     {
       id: 1,
-      author: 'Ana Silva',
+      author: 'Maria Silva',
       avatar: '/api/placeholder/40/40',
       time: '2h',
-      content: '🎉 Consegui! Meu vídeo chegou a 100k visualizações usando a estrutura de roteiro que aprendi aqui. Obrigada, comunidade! 🚀',
-      likes: 24,
-      comments: 8,
-      pinned: true,
-      image: '/api/placeholder/400/300'
+      content: 'Acabei de bater 100k seguidores no TikTok! 🎉 As estratégias do Kelvin funcionam mesmo! Quem mais está aplicando os roteiros virais?',
+      likes: 45,
+      comments: 12,
+      type: 'conquista'
     },
     {
       id: 2,
-      author: 'Carlos Mendes',
+      author: 'João Creator',
       avatar: '/api/placeholder/40/40',
       time: '4h',
-      content: 'Pessoal, alguém pode me ajudar? Estou com dificuldade em criar hooks para meus vídeos de negócios. Que estratégias vocês usam para chamar atenção logo nos primeiros 3 segundos?',
-      likes: 12,
-      comments: 15,
-      pinned: false
-    },
-    {
-      id: 3,
-      author: 'Mariana Costa',
-      avatar: '/api/placeholder/40/40',
-      time: '6h',
-      content: '💡 DICA: Acabei de descobrir que usar trending sounds aumentou meu alcance em 300%! Quem mais está testando essa estratégia?',
-      likes: 31,
-      comments: 22,
-      pinned: false
+      content: 'Alguém tem dicas para roteiros de produtos digitais? Estou começando agora e quero criar conteúdo que converte 🚀',
+      likes: 23,
+      comments: 8,
+      type: 'duvida'
     }
   ];
 
+  const trendingTopics = [
+    '#RoteirosVirais',
+    '#TikTokGrowth',
+    '#CreatorTips',
+    '#Monetização'
+  ];
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Post Creation */}
-      <Card className="glass-effect hover-lift">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <Avatar>
-              <AvatarImage src="/api/placeholder/40/40" />
-              <AvatarFallback>EU</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <Button variant="outline" className="w-full justify-start text-muted-foreground">
-                Compartilhe sua conquista ou dúvida...
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="max-w-6xl mx-auto">
+      <div className="grid lg:grid-cols-12 gap-6">
+        {/* Left Sidebar - Community Stats */}
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="glass-effect">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <span>Estatísticas da Comunidade</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Membros ativos</p>
+                <p className="text-2xl font-bold text-primary">1,247</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Posts hoje</p>
+                <p className="text-2xl font-bold">23</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Online agora</p>
+                <p className="text-2xl font-bold text-green-500">156</p>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Pinned Posts */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center space-x-2">
-          <Pin className="w-5 h-5 text-primary" />
-          <span>Posts em Destaque</span>
-        </h3>
-        
-        {posts.filter(post => post.pinned).map((post) => (
-          <Card key={post.id} className="glass-effect hover-lift border-primary/30">
+          {/* Trending Topics */}
+          <Card className="glass-effect">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Hash className="w-5 h-5 text-primary" />
+                <span>Trending Topics</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {trendingTopics.map((topic, index) => (
+                  <button
+                    key={index}
+                    className="block w-full text-left text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Feed */}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Highlight Card */}
+          <Card className="glass-effect border-primary/30 bg-primary/5">
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
-                <Avatar>
-                  <AvatarImage src={post.avatar} />
-                  <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <div className="p-3 rounded-full bg-primary/20">
+                  <Calendar className="w-6 h-6 text-primary" />
+                </div>
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h4 className="font-semibold">{post.author}</h4>
-                    <span className="text-sm text-muted-foreground">{post.time}</span>
-                    <Pin className="w-4 h-4 text-primary" />
-                  </div>
-                  <p className="text-sm mb-4">{post.content}</p>
-                  {post.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
-                      <img 
-                        src={post.image} 
-                        alt="Post content" 
-                        className="w-full h-48 object-cover"
-                      />
+                  <h3 className="font-semibold text-lg mb-2">Destaque da Semana</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Nova masterclass sobre hooks virais disponível! Aprenda as técnicas que estão fazendo creators explodirem no TikTok.
+                  </p>
+                  <Button size="sm">
+                    Assistir Agora
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Post Creation */}
+          <Card className="glass-effect hover-lift">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4 mb-4">
+                <Avatar>
+                  <AvatarImage src="/api/placeholder/40/40" />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+                <Input 
+                  placeholder="Compartilhe suas conquistas, dúvidas ou ideias com a comunidade..."
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Button variant="ghost" size="sm">
+                    <Image className="w-4 h-4 mr-2" />
+                    Imagem
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Hash className="w-4 h-4 mr-2" />
+                    Tag
+                  </Button>
+                </div>
+                <Button size="sm">
+                  <Send className="w-4 h-4 mr-2" />
+                  Publicar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Posts */}
+          {posts.map((post) => (
+            <Card key={post.id} className="glass-effect hover-lift">
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <Avatar>
+                    <AvatarImage src={post.avatar} />
+                    <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h4 className="font-semibold">{post.author}</h4>
+                      <span className="text-sm text-muted-foreground">{post.time}</span>
+                      {post.type === 'conquista' && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-500">
+                          Conquista
+                        </span>
+                      )}
+                      {post.type === 'duvida' && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-500">
+                          Dúvida
+                        </span>
+                      )}
                     </div>
-                  )}
-                  <div className="flex items-center space-x-6">
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <Heart className="w-4 h-4" />
-                      <span className="text-sm">{post.likes}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-sm">{post.comments}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <Share className="w-4 h-4" />
-                      <span className="text-sm">Compartilhar</span>
-                    </button>
+                    <p className="text-sm mb-4">{post.content}</p>
+                    <div className="flex items-center space-x-6">
+                      <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
+                        <Heart className="w-4 h-4" />
+                        <span className="text-sm">{post.likes}</span>
+                      </button>
+                      <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
+                        <MessageCircle className="w-4 h-4" />
+                        <span className="text-sm">{post.comments}</span>
+                      </button>
+                      <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
+                        <Share className="w-4 h-4" />
+                        <span className="text-sm">Compartilhar</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      {/* Regular Posts */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Feed da Comunidade</h3>
-        
-        {posts.filter(post => !post.pinned).map((post) => (
-          <Card key={post.id} className="glass-effect hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-4">
-                <Avatar>
-                  <AvatarImage src={post.avatar} />
-                  <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h4 className="font-semibold">{post.author}</h4>
-                    <span className="text-sm text-muted-foreground">{post.time}</span>
-                  </div>
-                  <p className="text-sm mb-4">{post.content}</p>
-                  <div className="flex items-center space-x-6">
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <Heart className="w-4 h-4" />
-                      <span className="text-sm">{post.likes}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-sm">{post.comments}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-                      <Share className="w-4 h-4" />
-                      <span className="text-sm">Compartilhar</span>
-                    </button>
-                  </div>
+        {/* Right Sidebar - Quick Actions & Events */}
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="glass-effect">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Plus className="w-5 h-5 text-primary" />
+                <span>Ações Rápidas</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button className="w-full justify-start" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Pergunta
+              </Button>
+              <Button className="w-full justify-start" variant="outline" size="sm">
+                <Share className="w-4 h-4 mr-2" />
+                Compartilhar Conquista
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Events */}
+          <Card className="glass-effect">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Próximos Eventos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="border-l-2 border-primary pl-3">
+                  <h4 className="font-medium text-sm">Mentoria ao Vivo</h4>
+                  <p className="text-xs text-muted-foreground">Hoje às 19h</p>
+                </div>
+                <div className="border-l-2 border-blue-500 pl-3">
+                  <h4 className="font-medium text-sm">Workshop de Roteiros</h4>
+                  <p className="text-xs text-muted-foreground">Amanhã às 15h</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+        </div>
       </div>
     </div>
   );
