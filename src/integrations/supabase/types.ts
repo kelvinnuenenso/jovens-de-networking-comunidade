@@ -9,12 +9,184 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      challenges: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_days: number
+          id: string
+          points: number | null
+          reward: string | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_days: number
+          id?: string
+          points?: number | null
+          reward?: string | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          points?: number | null
+          reward?: string | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          instructor: string
+          rating: number | null
+          students_count: number | null
+          thumbnail_url: string | null
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          instructor: string
+          rating?: number | null
+          students_count?: number | null
+          thumbnail_url?: string | null
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          instructor?: string
+          rating?: number | null
+          students_count?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          duration_minutes: number | null
+          event_type: string
+          id: string
+          max_participants: number | null
+          time: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description?: string | null
+          duration_minutes?: number | null
+          event_type: string
+          id?: string
+          max_participants?: number | null
+          time: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          duration_minutes?: number | null
+          event_type?: string
+          id?: string
+          max_participants?: number | null
+          time?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      feed_posts: {
+        Row: {
+          author_id: string | null
+          comments_count: number | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          likes_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           email: string
           full_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
         }
         Insert: {
@@ -22,6 +194,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Update: {
@@ -29,7 +202,47 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      scripts: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          downloads_count: number | null
+          full_content: string | null
+          id: string
+          preview_text: string | null
+          rating: number | null
+          title: string
+          views_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          downloads_count?: number | null
+          full_content?: string | null
+          id?: string
+          preview_text?: string | null
+          rating?: number | null
+          title: string
+          views_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          downloads_count?: number | null
+          full_content?: string | null
+          id?: string
+          preview_text?: string | null
+          rating?: number | null
+          title?: string
+          views_count?: number | null
         }
         Relationships: []
       }
@@ -41,7 +254,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -156,6 +369,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "user"],
+    },
   },
 } as const

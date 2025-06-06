@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { Search, Bell, User, LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { SearchComponent } from '@/components/SearchComponent';
+import { NotificationComponent } from '@/components/NotificationComponent';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +28,11 @@ export const DesktopHeader = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Search className="w-5 h-5" />
-          </Button>
+          <div className="w-80">
+            <SearchComponent />
+          </div>
           
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full"></div>
-          </Button>
+          <NotificationComponent />
           
           {user && (
             <DropdownMenu>
