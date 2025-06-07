@@ -110,8 +110,8 @@ export const CourseFilters: React.FC<CourseFiltersProps> = ({
             onClick={() => {
               onSearchChange('');
               onCategoriesChange([]);
-              onFavoritesToggle();
-              onCompletedToggle();
+              if (showFavoritesOnly) onFavoritesToggle();
+              if (showCompletedOnly) onCompletedToggle();
             }}
           >
             Limpar filtros

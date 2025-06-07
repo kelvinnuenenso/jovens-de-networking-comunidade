@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Play, Clock, Users, Star, Plus, BookOpen, Heart, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

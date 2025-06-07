@@ -261,6 +261,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_progress: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          is_favorite: boolean | null
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          watch_time: number | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          is_favorite?: boolean | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          watch_time?: number | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          is_favorite?: boolean | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          watch_time?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

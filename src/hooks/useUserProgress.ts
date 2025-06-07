@@ -27,11 +27,13 @@ export const useUserProgress = () => {
   }, [user]);
 
   const fetchUserProgress = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('user_progress')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
       setUserProgress(data || []);
@@ -43,11 +45,13 @@ export const useUserProgress = () => {
   };
 
   const markAsCompleted = async (courseId: string) => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert({
-          user_id: user?.id,
+          user_id: user.id,
           course_id: courseId,
           is_completed: true,
           updated_at: new Date().toISOString()
@@ -70,6 +74,8 @@ export const useUserProgress = () => {
   };
 
   const toggleFavorite = async (courseId: string) => {
+    if (!user) return;
+    
     try {
       const existing = userProgress.find(p => p.course_id === courseId);
       const isFavorite = existing ? !existing.is_favorite : true;
@@ -77,7 +83,7 @@ export const useUserProgress = () => {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert({
-          user_id: user?.id,
+          user_id: user.id,
           course_id: courseId,
           is_favorite: isFavorite,
           updated_at: new Date().toISOString()
@@ -99,11 +105,13 @@ export const useUserProgress = () => {
   };
 
   const rateCourse = async (courseId: string, rating: number) => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert({
-          user_id: user?.id,
+          user_id: user.id,
           course_id: courseId,
           rating,
           updated_at: new Date().toISOString()
