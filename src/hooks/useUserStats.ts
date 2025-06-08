@@ -38,7 +38,7 @@ export const useUserStats = () => {
 
       if (error) throw error;
       
-      if (data && typeof data === 'object') {
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
         setStats(data as UserStats);
       }
     } catch (error) {
