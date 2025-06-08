@@ -295,6 +295,48 @@ export type Database = {
         }
         Relationships: []
       }
+      kelvin_content: {
+        Row: {
+          content_type: string
+          created_at: string
+          created_by: string
+          description: string | null
+          duration: string | null
+          id: string
+          is_published: boolean | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_published?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_published?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       message_groups: {
         Row: {
           created_at: string
@@ -415,27 +457,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          badges: string[] | null
+          bio: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          points: number | null
           role: Database["public"]["Enums"]["user_role"] | null
+          tiktok_username: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
+          badges?: string[] | null
+          bio?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          points?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          tiktok_username?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
+          badges?: string[] | null
+          bio?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          points?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          tiktok_username?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -476,6 +533,33 @@ export type Database = {
           rating?: number | null
           title?: string
           views_count?: number | null
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string
+          id: string
+          points_earned: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string
+          id?: string
+          points_earned?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          points_earned?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -528,7 +612,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_stats: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       user_role: "admin" | "user"

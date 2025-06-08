@@ -1,166 +1,309 @@
 
-import React from 'react';
-import { Clock, Users, Video, Calendar as CalendarIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Clock, Users, Calendar as CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  date: string;
+  time: string;
+  event_type: string;
+  duration_minutes: number;
+  max_participants: number | null;
+  created_by: string | null;
+  created_at: string;
+}
 
 export const Calendar = () => {
-  const events = [
-    {
-      id: 1,
-      title: 'Mentoria em Grupo: Estratégias de Crescimento',
-      date: '2024-01-15',
-      time: '19:00',
-      duration: '90min',
-      participants: 25,
-      type: 'live',
-      description: 'Aprenda as melhores estratégias para crescer organicamente no TikTok e converter seguidores em clientes.'
-    },
-    {
-      id: 2,
-      title: 'Workshop: Criando Roteiros Virais',
-      date: '2024-01-18',
-      time: '20:00',
-      duration: '60min',
-      participants: 15,
-      type: 'workshop',
-      description: 'Descubra os segredos por trás dos roteiros que viralizam e como adaptar para seu nicho.'
-    },
-    {
-      id: 3,
-      title: 'Encontro da Comunidade: Networking',
-      date: '2024-01-22',
-      time: '18:30',
-      duration: '120min',
-      participants: 40,
-      type: 'meetup',
-      description: 'Conecte-se com outros creators, compartilhe experiências e faça parcerias estratégicas.'
-    }
-  ];
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const { user } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    event_type: 'workshop',
+    duration_minutes: 60,
+    max_participants: null as number | null
+  });
 
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case 'live':
-        return Video;
-      case 'workshop':
-        return CalendarIcon;
-      case 'meetup':
-        return Users;
-      default:
-        return CalendarIcon;
+  const isAdmin = true; // Simplificado - implementar verificação real depois
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+
+      if (error) throw error;
+      setEvents(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar eventos:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getEventColor = (type: string) => {
-    switch (type) {
-      case 'live':
-        return 'bg-red-500/20 border-red-500/30';
-      case 'workshop':
-        return 'bg-primary/20 border-primary/30';
-      case 'meetup':
-        return 'bg-green-500/20 border-green-500/30';
-      default:
-        return 'bg-primary/20 border-primary/30';
+  const handleSubmit = async () => {
+    if (!user) return;
+
+    try {
+      if (editingEvent) {
+        const { error } = await supabase
+          .from('events')
+          .update(formData)
+          .eq('id', editingEvent.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('events')
+          .insert({
+            ...formData,
+            created_by: user.id
+          });
+
+        if (error) throw error;
+      }
+
+      fetchEvents();
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar evento:', error);
     }
   };
+
+  const handleEdit = (event: Event) => {
+    setFormData({
+      title: event.title,
+      description: event.description || '',
+      date: event.date,
+      time: event.time,
+      event_type: event.event_type,
+      duration_minutes: event.duration_minutes,
+      max_participants: event.max_participants
+    });
+    setEditingEvent(event);
+    setShowCreateDialog(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja deletar este evento?')) {
+      try {
+        const { error } = await supabase
+          .from('events')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        fetchEvents();
+      } catch (error) {
+        console.error('Erro ao deletar evento:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      event_type: 'workshop',
+      duration_minutes: 60,
+      max_participants: null
+    });
+    setEditingEvent(null);
+    setShowCreateDialog(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const formatTime = (timeStr: string) => {
+    return timeStr.substring(0, 5);
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Carregando eventos...</div>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Agenda de Eventos</h2>
-        <p className="text-muted-foreground">
-          Não perca nenhuma mentoria, workshop ou encontro da comunidade
-        </p>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Agenda de Eventos</h2>
+        {isAdmin && (
+          <Button onClick={() => setShowCreateDialog(true)} className="flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Criar Evento</span>
+          </Button>
+        )}
       </div>
 
-      {/* Upcoming Events */}
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold flex items-center space-x-2">
-          <CalendarIcon className="w-5 h-5 text-primary" />
-          <span>Próximos Eventos</span>
-        </h3>
-
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1">
-          {events.map((event) => {
-            const Icon = getEventIcon(event.type);
-            return (
-              <Card key={event.id} className={`glass-effect hover-lift ${getEventColor(event.type)}`}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 rounded-lg bg-background/50">
-                        <Icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{event.title}</CardTitle>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                          <span className="flex items-center space-x-1">
-                            <CalendarIcon className="w-4 h-4" />
-                            <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{event.time}</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <Users className="w-4 h-4" />
-                            <span>{event.participants} participantes</span>
-                          </span>
-                        </div>
-                      </div>
+      {/* Events Grid */}
+      <div className="grid gap-6">
+        {events.map((event) => (
+          <Card key={event.id} className="glass-effect hover-lift">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span>{formatDate(event.date)}</span>
                     </div>
-                    <Button size="sm" className="shrink-0">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatTime(event.time)}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <span>{event.duration_minutes} min</span>
+                    </div>
+                    {event.max_participants && (
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        <span>Máx. {event.max_participants}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
+                  <p className="text-muted-foreground mb-4">{event.description}</p>
+                  
+                  <div className="flex items-center space-x-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      event.event_type === 'workshop' ? 'bg-blue-100 text-blue-800' :
+                      event.event_type === 'live' ? 'bg-red-100 text-red-800' :
+                      event.event_type === 'mentoria' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {event.event_type === 'workshop' ? 'Workshop' :
+                       event.event_type === 'live' ? 'Live' :
+                       event.event_type === 'mentoria' ? 'Mentoria' :
+                       event.event_type}
+                    </span>
+                    
+                    <Button size="sm">
                       Participar
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {event.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-primary">
-                      Duração: {event.duration}
-                    </span>
-                    <Button variant="outline" size="sm">
-                      Adicionar ao Calendário
+                </div>
+                
+                {isAdmin && (
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="ghost" onClick={() => handleEdit(event)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDelete(event.id)}>
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-        <Card className="glass-effect text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary mb-1">12</div>
-            <div className="text-sm text-muted-foreground">Eventos este mês</div>
-          </CardContent>
-        </Card>
-        <Card className="glass-effect text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary mb-1">3</div>
-            <div className="text-sm text-muted-foreground">Próxima semana</div>
-          </CardContent>
-        </Card>
-        <Card className="glass-effect text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary mb-1">156</div>
-            <div className="text-sm text-muted-foreground">Total participantes</div>
-          </CardContent>
-        </Card>
-        <Card className="glass-effect text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary mb-1">8</div>
-            <div className="text-sm text-muted-foreground">Eventos assistidos</div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Create/Edit Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={resetForm}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Input
+              placeholder="Título do evento"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+            />
+            
+            <Textarea
+              placeholder="Descrição"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={3}
+            />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+              />
+              
+              <Input
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({...formData, time: e.target.value})}
+              />
+            </div>
+            
+            <Select 
+              value={formData.event_type} 
+              onValueChange={(value) => setFormData({...formData, event_type: value})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="workshop">Workshop</SelectItem>
+                <SelectItem value="live">Live</SelectItem>
+                <SelectItem value="mentoria">Mentoria</SelectItem>
+                <SelectItem value="networking">Networking</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="number"
+                placeholder="Duração (minutos)"
+                value={formData.duration_minutes}
+                onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value)})}
+              />
+              
+              <Input
+                type="number"
+                placeholder="Máx. participantes"
+                value={formData.max_participants || ''}
+                onChange={(e) => setFormData({...formData, max_participants: e.target.value ? parseInt(e.target.value) : null})}
+              />
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button onClick={handleSubmit} disabled={!formData.title || !formData.date || !formData.time}>
+                {editingEvent ? 'Atualizar' : 'Criar'}
+              </Button>
+              <Button variant="outline" onClick={resetForm}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
