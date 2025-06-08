@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Target, Trophy, Calendar, CheckCircle, Plus, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,11 +20,11 @@ export const Challenges = () => {
     description: '',
     duration_days: 7,
     points: 100,
-    reward: ''
+    reward: '',
+    status: 'active'
   });
 
-  // Verificar se o usuário é admin (você pode ajustar esta lógica conforme necessário)
-  const isAdmin = user?.email === 'kelvinviraliza@gmail.com'; // Substitua pela sua lógica de admin
+  const isAdmin = user?.email === 'kelvinviraliza@gmail.com';
 
   const handleCreateChallenge = async () => {
     if (!newChallenge.title.trim()) return;
@@ -36,7 +35,8 @@ export const Challenges = () => {
       description: '',
       duration_days: 7,
       points: 100,
-      reward: ''
+      reward: '',
+      status: 'active'
     });
     setShowCreateDialog(false);
   };
@@ -99,7 +99,7 @@ export const Challenges = () => {
         </Card>
         <Card className="glass-effect text-center">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary mb-1">{userChallenges.filter(uc => uc.status === 'completed').length}</div>
+            <div className="text-2xl font-bold text-primary mb-1">{stats?.challenges_completed || 0}</div>
             <div className="text-sm text-muted-foreground">Badges Conquistadas</div>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ export const Challenges = () => {
         <h3 className="text-xl font-semibold">Desafios Disponíveis</h3>
         
         {challenges.map((challenge) => {
-          const userChallenge = getUserChallengeForChallenge(challenge.id);
+          const userChallenge = userChallenges.find(uc => uc.challenge_id === challenge.id);
           const isParticipating = !!userChallenge;
           const status = userChallenge?.status || 'available';
           
