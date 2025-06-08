@@ -83,19 +83,25 @@ export const useCommunityPosts = () => {
           .eq('post_id', postId)
           .eq('user_id', user.id);
 
-        // Atualizar contador
-        await supabase.rpc('decrement_likes', { post_id: postId });
+        // Atualizar contador manualmente
+        setPosts(prev => prev.map(post => 
+          post.id === postId 
+            ? { ...post, likes_count: Math.max(0, post.likes_count - 1) }
+            : post
+        ));
       } else {
         // Adicionar curtida
         await supabase
           .from('post_likes')
           .insert({ post_id: postId, user_id: user.id });
 
-        // Atualizar contador
-        await supabase.rpc('increment_likes', { post_id: postId });
+        // Atualizar contador manualmente
+        setPosts(prev => prev.map(post => 
+          post.id === postId 
+            ? { ...post, likes_count: post.likes_count + 1 }
+            : post
+        ));
       }
-
-      fetchPosts();
     } catch (error) {
       console.error('Erro ao curtir post:', error);
     }

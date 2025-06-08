@@ -34,7 +34,7 @@ export const useKelvinContent = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setContent(data || []);
+      setContent((data || []) as KelvinContent[]);
     } catch (error) {
       console.error('Erro ao buscar conteúdo:', error);
     } finally {
@@ -57,7 +57,7 @@ export const useKelvinContent = () => {
 
       if (error) throw error;
 
-      setContent(prev => [data, ...prev]);
+      setContent(prev => [data as KelvinContent, ...prev]);
       return { data };
     } catch (error) {
       console.error('Erro ao criar conteúdo:', error);
@@ -76,7 +76,7 @@ export const useKelvinContent = () => {
 
       if (error) throw error;
 
-      setContent(prev => prev.map(item => item.id === id ? data : item));
+      setContent(prev => prev.map(item => item.id === id ? data as KelvinContent : item));
       return { data };
     } catch (error) {
       console.error('Erro ao atualizar conteúdo:', error);
