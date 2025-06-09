@@ -39,7 +39,15 @@ export const useUserStats = () => {
       if (error) throw error;
       
       if (data && typeof data === 'object' && !Array.isArray(data)) {
-        setStats(data as UserStats);
+        // Conversão mais segura dos dados
+        const statsData = data as any;
+        setStats({
+          total_points: Number(statsData.total_points) || 0,
+          courses_completed: Number(statsData.courses_completed) || 0,
+          challenges_completed: Number(statsData.challenges_completed) || 0,
+          days_in_community: Number(statsData.days_in_community) || 0,
+          total_activities: Number(statsData.total_activities) || 0
+        });
       }
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);

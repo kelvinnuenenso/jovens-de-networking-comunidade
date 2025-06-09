@@ -1,29 +1,87 @@
 
-import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, TrendingUp, Users, Hash, Image, Send, Plus } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Heart, MessageCircle, Share2, TrendingUp, Users, Hash, Send, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 import { useAuth } from '@/contexts/AuthContext';
+import { PostActions } from '@/components/PostActions';
+import { EditPostDialog } from '@/components/EditPostDialog';
 
 export const CommunityFeedDesktop = () => {
-  const { posts, loading, createPost, toggleLike } = useCommunityPosts();
+  const { posts, loading, createPost, updatePost, deletePost, toggleLike, checkUserRole } = useCommunityPosts();
   const { user } = useAuth();
   
   const [newPostContent, setNewPostContent] = useState('');
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const role = await checkUserRole();
+      setUserRole(role);
+    };
+    if (user) {
+      fetchUserRole();
+    }
+  }, [user, checkUserRole]);
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
 
     setIsCreatingPost(true);
-    await createPost(newPostContent);
+    await createPost(newPostContent, selectedImage || undefined);
     setNewPostContent('');
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsCreatingPost(false);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditPost = (postId: string, content: string) => {
+    setEditingPost(postId);
+    setEditContent(content);
+  };
+
+  const handleSaveEdit = async (content: string) => {
+    if (editingPost) {
+      await updatePost(editingPost, content);
+      setEditingPost(null);
+      setEditContent('');
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    await deletePost(postId);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   if (loading) {
@@ -169,11 +227,40 @@ export const CommunityFeedDesktop = () => {
                       rows={3}
                       className="resize-none border-0 bg-muted/50"
                     />
+                    
+                    {imagePreview && (
+                      <div className="relative">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-full h-64 object-cover rounded-lg"
+                        />
+                        <Button
+                          onClick={removeImage}
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Image className="w-4 h-4 mr-2" />
-                          Imagem
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageSelect}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          📷 Imagem
                         </Button>
                         <Button variant="ghost" size="sm">
                           <Hash className="w-4 h-4 mr-2" />
@@ -206,12 +293,21 @@ export const CommunityFeedDesktop = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="font-semibold">Maria Silva</span>
-                          <Badge variant="secondary" className="text-xs">Conquista</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(post.created_at).toLocaleDateString('pt-BR')}
-                          </span>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold">Creator</span>
+                            <Badge variant="secondary" className="text-xs">Member</Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(post.created_at).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                          <PostActions
+                            postId={post.id}
+                            isOwner={post.user_id === user?.id}
+                            isAdmin={userRole === 'admin'}
+                            onEdit={() => handleEditPost(post.id, post.content)}
+                            onDelete={() => handleDeletePost(post.id)}
+                          />
                         </div>
                         <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
                         {post.image_url && (
@@ -287,6 +383,13 @@ export const CommunityFeedDesktop = () => {
           </div>
         </div>
       </div>
+
+      <EditPostDialog
+        open={!!editingPost}
+        onOpenChange={(open) => !open && setEditingPost(null)}
+        initialContent={editContent}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };

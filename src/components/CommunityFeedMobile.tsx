@@ -1,30 +1,88 @@
 
-import React, { useState } from 'react';
-import { Heart, MessageCircle, Send, Image, Plus, Hash, TrendingUp, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useRef, useEffect } from 'react';
+import { Heart, MessageCircle, Send, Plus, Hash, TrendingUp, Users, MoreHorizontal } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 import { useAuth } from '@/contexts/AuthContext';
+import { PostActions } from '@/components/PostActions';
+import { EditPostDialog } from '@/components/EditPostDialog';
 
 export const CommunityFeedMobile = () => {
-  const { posts, loading, createPost, toggleLike } = useCommunityPosts();
+  const { posts, loading, createPost, updatePost, deletePost, toggleLike, checkUserRole } = useCommunityPosts();
   const { user } = useAuth();
   
   const [newPostContent, setNewPostContent] = useState('');
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const role = await checkUserRole();
+      setUserRole(role);
+    };
+    if (user) {
+      fetchUserRole();
+    }
+  }, [user, checkUserRole]);
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
 
     setIsCreatingPost(true);
-    await createPost(newPostContent);
+    await createPost(newPostContent, selectedImage || undefined);
     setNewPostContent('');
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsCreatingPost(false);
     setShowCreatePost(false);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditPost = (postId: string, content: string) => {
+    setEditingPost(postId);
+    setEditContent(content);
+  };
+
+  const handleSaveEdit = async (content: string) => {
+    if (editingPost) {
+      await updatePost(editingPost, content);
+      setEditingPost(null);
+      setEditContent('');
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    await deletePost(postId);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   if (loading) {
@@ -119,10 +177,41 @@ export const CommunityFeedMobile = () => {
                     className="text-sm resize-none border-0 bg-muted/30 min-h-[80px]"
                   />
                 </div>
+                
+                {imagePreview && (
+                  <div className="relative pl-10">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <Button
+                      onClick={removeImage}
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-2 right-2 h-6 w-6 p-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between pl-10">
                   <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Image className="w-4 h-4" />
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      📷
                     </Button>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <Hash className="w-4 h-4" />
@@ -155,17 +244,26 @@ export const CommunityFeedMobile = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1.5">
-                      <span className="font-medium text-sm truncate">João Creator</span>
-                      <Badge variant="secondary" className="text-xs px-1.5 py-0.5 flex-shrink-0">
-                        Creator
-                      </Badge>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {new Date(post.created_at).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: '2-digit'
-                        })}
-                      </span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center space-x-2 min-w-0 flex-1">
+                        <span className="font-medium text-sm truncate">Creator</span>
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5 flex-shrink-0">
+                          Member
+                        </Badge>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                          {new Date(post.created_at).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <PostActions
+                        postId={post.id}
+                        isOwner={post.user_id === user?.id}
+                        isAdmin={userRole === 'admin'}
+                        onEdit={() => handleEditPost(post.id, post.content)}
+                        onDelete={() => handleDeletePost(post.id)}
+                      />
                     </div>
                     <p className="text-sm mb-3 whitespace-pre-wrap break-words leading-relaxed">
                       {post.content}
@@ -224,6 +322,13 @@ export const CommunityFeedMobile = () => {
           </div>
         )}
       </div>
+
+      <EditPostDialog
+        open={!!editingPost}
+        onOpenChange={(open) => !open && setEditingPost(null)}
+        initialContent={editContent}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };

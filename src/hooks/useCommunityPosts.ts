@@ -39,10 +39,30 @@ export const useCommunityPosts = () => {
     }
   };
 
-  const createPost = async (content: string, imageUrl?: string) => {
+  const createPost = async (content: string, imageFile?: File) => {
     if (!user) return { error: 'Usuário não autenticado' };
 
     try {
+      let imageUrl = null;
+
+      // Upload da imagem se fornecida
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('community-images')
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('community-images')
+          .getPublicUrl(uploadData.path);
+        
+        imageUrl = urlData.publicUrl;
+      }
+
       const { data, error } = await supabase
         .from('community_posts')
         .insert({
@@ -59,6 +79,48 @@ export const useCommunityPosts = () => {
       return { data };
     } catch (error) {
       console.error('Erro ao criar post:', error);
+      return { error };
+    }
+  };
+
+  const updatePost = async (postId: string, content: string) => {
+    if (!user) return { error: 'Usuário não autenticado' };
+
+    try {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq('id', postId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? data : post
+      ));
+      return { data };
+    } catch (error) {
+      console.error('Erro ao atualizar post:', error);
+      return { error };
+    }
+  };
+
+  const deletePost = async (postId: string) => {
+    if (!user) return { error: 'Usuário não autenticado' };
+
+    try {
+      const { error } = await supabase
+        .from('community_posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      return { success: true };
+    } catch (error) {
+      console.error('Erro ao deletar post:', error);
       return { error };
     }
   };
@@ -107,11 +169,32 @@ export const useCommunityPosts = () => {
     }
   };
 
+  const checkUserRole = async () => {
+    if (!user) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data?.role;
+    } catch (error) {
+      console.error('Erro ao verificar role:', error);
+      return null;
+    }
+  };
+
   return {
     posts,
     loading,
     createPost,
+    updatePost,
+    deletePost,
     toggleLike,
+    checkUserRole,
     refetch: fetchPosts
   };
 };
