@@ -536,6 +536,36 @@ export type Database = {
         }
         Relationships: []
       }
+      trending_topics: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          posts_count: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          posts_count?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          posts_count?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_activities: {
         Row: {
           activity_data: Json | null

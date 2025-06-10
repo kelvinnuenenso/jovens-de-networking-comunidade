@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Calendar, Play, FileText, Target, User, Star } from 'lucide-react';
+import { Home, Calendar, Play, FileText, Target, User, Star, TrendingUp } from 'lucide-react';
 
 interface MobileNavbarProps {
   activeTab: string;
@@ -10,7 +10,7 @@ interface MobileNavbarProps {
 export const MobileNavbar: React.FC<MobileNavbarProps> = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'feed', label: 'Feed', icon: Home },
-    { id: 'calendar', label: 'Agenda', icon: Calendar },
+    { id: 'trends', label: 'Trends', icon: TrendingUp },
     { id: 'courses', label: 'Aulas', icon: Play },
     { id: 'scripts', label: 'Roteiros', icon: FileText },
     { id: 'challenges', label: 'Desafios', icon: Target },

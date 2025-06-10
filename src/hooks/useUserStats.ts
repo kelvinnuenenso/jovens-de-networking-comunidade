@@ -39,7 +39,6 @@ export const useUserStats = () => {
       if (error) throw error;
       
       if (data && typeof data === 'object' && !Array.isArray(data)) {
-        // Conversão mais segura dos dados
         const statsData = data as any;
         setStats({
           total_points: Number(statsData.total_points) || 0,
@@ -51,14 +50,6 @@ export const useUserStats = () => {
       }
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
-      // Fallback para dados simulados
-      setStats({
-        total_points: 1250,
-        courses_completed: 8,
-        challenges_completed: 12,
-        days_in_community: 45,
-        total_activities: 156
-      });
     } finally {
       setLoading(false);
     }

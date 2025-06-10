@@ -9,6 +9,7 @@ import { Challenges } from '@/components/Challenges';
 import { Profile } from '@/components/Profile';
 import { KelvinChannel } from '@/components/KelvinChannel';
 import { Links } from '@/components/Links';
+import { Trends } from '@/components/Trends';
 import { MobileNavbar } from '@/components/MobileNavbar';
 import { DesktopHeader } from '@/components/DesktopHeader';
 import { MobileHeader } from '@/components/MobileHeader';
@@ -19,7 +20,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
-        return <Feed />;
+        return <Feed onNavigate={setActiveTab} />;
       case 'calendar':
         return <Calendar />;
       case 'courses':
@@ -34,8 +35,10 @@ const Index = () => {
         return <KelvinChannel />;
       case 'links':
         return <Links />;
+      case 'trends':
+        return <Trends />;
       default:
-        return <Feed />;
+        return <Feed onNavigate={setActiveTab} />;
     }
   };
 
