@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Calendar, Play, FileText, Target, User, Star, Link, BarChart3 } from 'lucide-react';
+import { Home, Calendar, Play, FileText, Target, User, Star, Link, BarChart3, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
@@ -19,6 +19,30 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ activeTab, setAc
     { id: 'kelvin', label: 'Canal do Kelvin', icon: Star, badge: 'LIVE' },
     { id: 'profile', label: 'Meu Perfil', icon: User },
     { id: 'links', label: 'Links Úteis', icon: Link },
+  ];
+
+  const quickActions = [
+    {
+      id: 'scripts',
+      label: 'Roteiros',
+      description: 'Scripts virais',
+      icon: FileText,
+      color: 'bg-green-500'
+    },
+    {
+      id: 'trends',
+      label: 'Tendências',
+      description: 'Veja o que está bombando',
+      icon: TrendingUp,
+      color: 'bg-red-500'
+    },
+    {
+      id: 'feed',
+      label: 'Comunidade',
+      description: 'Conecte-se',
+      icon: Users,
+      color: 'bg-pink-500'
+    }
   ];
 
   return (
@@ -69,6 +93,38 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ activeTab, setAc
             </Button>
           );
         })}
+
+        {/* Quick Actions Section */}
+        <div className="pt-4 mt-4 border-t border-border">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3 px-3">AÇÕES RÁPIDAS</h3>
+          <div className="space-y-1">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              const isActive = activeTab === action.id;
+              
+              return (
+                <Button
+                  key={action.id}
+                  onClick={() => setActiveTab(action.id)}
+                  variant="ghost"
+                  className={`w-full justify-start h-10 ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${action.color}`}>
+                    <Icon className="w-3 h-3 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-xs font-medium">{action.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{action.description}</div>
+                  </div>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Progress Section */}

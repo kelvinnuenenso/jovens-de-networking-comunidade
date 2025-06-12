@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Play, Clock, Users, Star, Plus, BookOpen, Heart, CheckCircle2 } from 'lucide-react';
+import { Play, Clock, Users, Star, Plus, BookOpen, Heart, CheckCircle2, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { CourseFilters } from '@/components/CourseFilters';
 import { CourseCategories } from '@/components/CourseCategories';
 
 export const Courses = () => {
-  const { courses, loading, addCourse } = useCourses();
+  const { courses, loading, addCourse, updateCourse, deleteCourse } = useCourses();
   const { userProgress, markAsCompleted, toggleFavorite, rateCourse } = useUserProgress();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -24,6 +24,7 @@ export const Courses = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [editingCourse, setEditingCourse] = useState<any>(null);
   
   // Estados dos filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,34 +101,90 @@ export const Courses = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { error } = await addCourse({
-      ...formData,
-      rating: 0,
-      students_count: 0
-    });
-
-    if (error) {
-      toast({
-        title: 'Erro ao adicionar aula',
-        description: 'Tente novamente mais tarde.',
-        variant: 'destructive'
-      });
+    if (editingCourse) {
+      const { error } = await updateCourse(editingCourse.id, formData);
+      
+      if (error) {
+        toast({
+          title: 'Erro ao atualizar aula',
+          description: 'Tente novamente mais tarde.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Aula atualizada com sucesso!',
+          description: 'As alterações foram salvas.'
+        });
+        resetForm();
+      }
     } else {
-      toast({
-        title: 'Aula adicionada com sucesso!',
-        description: 'A nova aula está disponível para os alunos.'
+      const { error } = await addCourse({
+        ...formData,
+        rating: 0,
+        students_count: 0
       });
-      setFormData({
-        title: '',
-        description: '',
-        instructor: '',
-        duration: '',
-        category: '',
-        thumbnail_url: '',
-        video_url: ''
-      });
-      setShowAddForm(false);
+
+      if (error) {
+        toast({
+          title: 'Erro ao adicionar aula',
+          description: 'Tente novamente mais tarde.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Aula adicionada com sucesso!',
+          description: 'A nova aula está disponível para os alunos.'
+        });
+        resetForm();
+      }
     }
+  };
+
+  const handleEdit = (course: any) => {
+    setEditingCourse(course);
+    setFormData({
+      title: course.title,
+      description: course.description || '',
+      instructor: course.instructor,
+      duration: course.duration || '',
+      category: course.category,
+      thumbnail_url: course.thumbnail_url || '',
+      video_url: course.video_url || ''
+    });
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (courseId: string) => {
+    if (confirm('Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita.')) {
+      const { error } = await deleteCourse(courseId);
+      
+      if (error) {
+        toast({
+          title: 'Erro ao excluir aula',
+          description: 'Tente novamente mais tarde.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Aula excluída com sucesso!',
+          description: 'A aula foi removida permanentemente.'
+        });
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      instructor: '',
+      duration: '',
+      category: '',
+      thumbnail_url: '',
+      video_url: ''
+    });
+    setEditingCourse(null);
+    setShowAddForm(false);
   };
 
   const handleWatchCourse = (course: any) => {
@@ -216,11 +273,13 @@ export const Courses = () => {
             onCompletedToggle={() => setShowCompletedOnly(!showCompletedOnly)}
           />
 
-          {/* Add Course Form */}
+          {/* Add/Edit Course Form */}
           {showAddForm && isAdmin && (
             <Card>
               <CardHeader>
-                <CardTitle>Adicionar Nova Aula</CardTitle>
+                <CardTitle>
+                  {editingCourse ? 'Editar Aula' : 'Adicionar Nova Aula'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -266,8 +325,10 @@ export const Courses = () => {
                     rows={3}
                   />
                   <div className="flex space-x-2">
-                    <Button type="submit">Adicionar Aula</Button>
-                    <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                    <Button type="submit">
+                      {editingCourse ? 'Atualizar Aula' : 'Adicionar Aula'}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetForm}>
                       Cancelar
                     </Button>
                   </div>
@@ -302,8 +363,36 @@ export const Courses = () => {
                     className="group hover:shadow-lg transition-all duration-300 cursor-pointer relative"
                     onClick={() => handleWatchCourse(course)}
                   >
-                    {/* Status badges */}
+                    {/* Status badges and admin controls */}
                     <div className="absolute top-2 right-2 z-10 flex gap-1">
+                      {/* Admin controls */}
+                      {isAdmin && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 bg-white/80 hover:bg-white text-gray-700 hover:text-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(course);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 bg-white/80 hover:bg-white text-gray-700 hover:text-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(course.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                      
                       {progress?.is_completed && (
                         <div className="bg-green-500 text-white p-1 rounded-full">
                           <CheckCircle2 className="w-3 h-3" />

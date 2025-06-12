@@ -62,10 +62,50 @@ export const useCourses = () => {
     }
   };
 
+  const updateCourse = async (id: string, updates: Partial<Course>) => {
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCourses(prev => prev.map(course => 
+        course.id === id ? data : course
+      ));
+      return { data, error: null };
+    } catch (error) {
+      console.error('Erro ao atualizar aula:', error);
+      return { data: null, error };
+    }
+  };
+
+  const deleteCourse = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCourses(prev => prev.filter(course => course.id !== id));
+      return { error: null };
+    } catch (error) {
+      console.error('Erro ao deletar aula:', error);
+      return { error };
+    }
+  };
+
   return {
     courses,
     loading,
     addCourse,
+    updateCourse,
+    deleteCourse,
     refetch: fetchCourses
   };
 };
