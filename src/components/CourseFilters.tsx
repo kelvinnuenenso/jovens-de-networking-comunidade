@@ -43,11 +43,13 @@ export const CourseFilters: React.FC<CourseFiltersProps> = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="">Todas as categorias</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.name}>
-              {category.icon} {category.name}
-            </SelectItem>
-          ))}
+          {categories
+            .filter((category) => category.name && category.name.trim() !== '')
+            .map((category) => (
+              <SelectItem key={category.id} value={category.name}>
+                {category.icon} {category.name}
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>
