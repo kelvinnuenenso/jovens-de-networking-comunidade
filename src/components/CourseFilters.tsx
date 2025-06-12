@@ -42,7 +42,7 @@ export const CourseFilters: React.FC<CourseFiltersProps> = ({
           <SelectValue placeholder="Todas as categorias" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todas as categorias</SelectItem>
+          <SelectItem value="all">Todas as categorias</SelectItem>
           {categories
             .filter((category) => category.name && category.name.trim() !== '')
             .map((category) => (

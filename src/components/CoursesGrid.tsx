@@ -27,12 +27,12 @@ export const CoursesGrid: React.FC<CoursesGridProps> = ({
     return (
       <div className="text-center py-12">
         <div className="text-muted-foreground mb-4">
-          {searchTerm || selectedCategory ? 
+          {searchTerm || (selectedCategory && selectedCategory !== 'all') ? 
             'Nenhuma aula encontrada com os filtros aplicados.' : 
             'Nenhuma aula disponível no momento.'
           }
         </div>
-        {(searchTerm || selectedCategory) && (
+        {(searchTerm || (selectedCategory && selectedCategory !== 'all')) && (
           <Button variant="outline" onClick={onClearFilters}>
             Limpar Filtros
           </Button>

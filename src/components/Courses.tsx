@@ -25,7 +25,7 @@ export const Courses = () => {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [editingCourse, setEditingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
 
@@ -34,7 +34,7 @@ export const Courses = () => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || course.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -68,7 +68,7 @@ export const Courses = () => {
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setSelectedCategory('');
+    setSelectedCategory('all');
   };
 
   if (loading) {
