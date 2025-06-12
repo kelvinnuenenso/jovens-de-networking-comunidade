@@ -1,139 +1,55 @@
 
 import React from 'react';
-import { Search, Filter, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter } from 'lucide-react';
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 interface CourseFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  selectedCategories: string[];
-  onCategoriesChange: (categories: string[]) => void;
-  availableCategories: string[];
-  showFavoritesOnly: boolean;
-  onFavoritesToggle: () => void;
-  showCompletedOnly: boolean;
-  onCompletedToggle: () => void;
+  selectedCategory: string;
+  onCategoryChange: (value: string) => void;
+  categories: Category[];
 }
 
 export const CourseFilters: React.FC<CourseFiltersProps> = ({
   searchTerm,
   onSearchChange,
-  selectedCategories,
-  onCategoriesChange,
-  availableCategories,
-  showFavoritesOnly,
-  onFavoritesToggle,
-  showCompletedOnly,
-  onCompletedToggle
+  selectedCategory,
+  onCategoryChange,
+  categories,
 }) => {
-  const handleCategoryToggle = (category: string) => {
-    if (selectedCategories.includes(category)) {
-      onCategoriesChange(selectedCategories.filter(c => c !== category));
-    } else {
-      onCategoriesChange([...selectedCategories, category]);
-    }
-  };
-
   return (
-    <div className="space-y-4">
-      {/* Barra de pesquisa */}
-      <div className="relative">
+    <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
-          placeholder="Pesquisar aulas..."
+          placeholder="Buscar aulas..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10"
         />
       </div>
-
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {/* Filtro de categorias */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Categorias
-              {selectedCategories.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                  {selectedCategories.length}
-                </Badge>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {availableCategories.map((category) => (
-              <DropdownMenuCheckboxItem
-                key={category}
-                checked={selectedCategories.includes(category)}
-                onCheckedChange={() => handleCategoryToggle(category)}
-              >
-                {category}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Filtro de favoritos */}
-        <Button
-          variant={showFavoritesOnly ? "default" : "outline"}
-          size="sm"
-          onClick={onFavoritesToggle}
-        >
-          <Star className={`w-4 h-4 mr-2 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-          Favoritas
-        </Button>
-
-        {/* Filtro de concluídas */}
-        <Button
-          variant={showCompletedOnly ? "default" : "outline"}
-          size="sm"
-          onClick={onCompletedToggle}
-        >
-          Concluídas
-        </Button>
-
-        {/* Limpar filtros */}
-        {(selectedCategories.length > 0 || showFavoritesOnly || showCompletedOnly || searchTerm) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onSearchChange('');
-              onCategoriesChange([]);
-              if (showFavoritesOnly) onFavoritesToggle();
-              if (showCompletedOnly) onCompletedToggle();
-            }}
-          >
-            Limpar filtros
-          </Button>
-        )}
-      </div>
-
-      {/* Tags dos filtros ativos */}
-      {selectedCategories.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {selectedCategories.map((category) => (
-            <Badge
-              key={category}
-              variant="secondary"
-              className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => handleCategoryToggle(category)}
-            >
-              {category} ×
-            </Badge>
+      <Select value={selectedCategory} onValueChange={onCategoryChange}>
+        <SelectTrigger className="w-full md:w-[200px]">
+          <Filter className="w-4 h-4 mr-2" />
+          <SelectValue placeholder="Todas as categorias" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Todas as categorias</SelectItem>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={category.name}>
+              {category.icon} {category.name}
+            </SelectItem>
           ))}
-        </div>
-      )}
+        </SelectContent>
+      </Select>
     </div>
   );
 };
