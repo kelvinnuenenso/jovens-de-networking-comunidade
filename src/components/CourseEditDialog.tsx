@@ -150,11 +150,13 @@ export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      {category.icon} {category.name}
-                    </SelectItem>
-                  ))}
+                  {categories
+                    .filter((category) => category.name && category.name.trim() !== '')
+                    .map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.icon} {category.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
