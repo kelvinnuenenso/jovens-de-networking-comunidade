@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCourses } from '@/hooks/useCourses';
 import { useCourseCategories } from '@/hooks/useCourseCategories';
@@ -87,6 +86,7 @@ export const Courses = () => {
         variant: 'destructive',
       });
     }
+    setCreatingCourse(false);
   };
 
   const handleClearFilters = () => {
@@ -113,7 +113,7 @@ export const Courses = () => {
         </div>
         {isAdmin && (
           <Button
-            className="flex gap-2 items-center"
+            className="flex gap-2 items-center bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg text-lg px-5 py-2 rounded transition"
             onClick={() => setCreatingCourse(true)}
           >
             <Plus className="w-4 h-4" />

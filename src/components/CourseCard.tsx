@@ -66,12 +66,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           </div>
         )}
       </div>
-      
       <CardHeader className="pb-2 flex flex-col items-center justify-center">
-        <CardTitle className="text-lg font-bold text-center line-clamp-2">{course.title}</CardTitle>
-        <p className="text-sm text-muted-foreground text-center">por {course.instructor}</p>
+        <CardTitle className="text-xl md:text-2xl font-extrabold text-primary text-center tracking-tight mb-1">
+          {course.title}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground text-center font-medium">por {course.instructor}</p>
       </CardHeader>
-      
       <CardContent>
         {course.description && (
           <p className="text-sm text-muted-foreground mb-4 line-clamp-2 text-center">
