@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useCourses } from '@/hooks/useCourses';
 import { useCourseCategories } from '@/hooks/useCourseCategories';
