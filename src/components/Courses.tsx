@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCourses } from '@/hooks/useCourses';
 import { useCourseCategories } from '@/hooks/useCourseCategories';
@@ -32,7 +31,15 @@ export const Courses = () => {
   const [deletingCourse, setDeletingCourse] = useState(null);
   const [creatingCourse, setCreatingCourse] = useState(false);
 
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  // Debug logs para verificar o usuário
+  console.log('Usuario atual:', user?.email);
+  console.log('User metadata:', user?.user_metadata);
+  console.log('User role:', user?.user_metadata?.role);
+  
+  // Verificação mais robusta de admin - incluindo email específico
+  const isAdmin = user?.user_metadata?.role === 'admin' || user?.email === 'kelvinviraliza@gmail.com';
+  
+  console.log('É admin?', isAdmin);
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,15 +119,19 @@ export const Courses = () => {
             Acesse todo o conteúdo exclusivo da Fábrica de Views
           </p>
         </div>
-        {isAdmin && (
+        {/* Sempre mostrar o botão para debug */}
+        <div className="flex flex-col gap-2">
           <Button
             className="flex gap-2 items-center bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg text-lg px-5 py-2 rounded transition"
             onClick={() => setCreatingCourse(true)}
           >
             <Plus className="w-4 h-4" />
-            Adicionar Aula
+            Adicionar Aula {!isAdmin && '(Debug)'}
           </Button>
-        )}
+          <small className="text-xs text-muted-foreground text-center">
+            Email: {user?.email} | Admin: {isAdmin ? 'Sim' : 'Não'}
+          </small>
+        </div>
       </div>
 
       <CourseFilters
