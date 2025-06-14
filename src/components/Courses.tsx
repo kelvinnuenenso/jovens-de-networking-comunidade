@@ -17,9 +17,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 export const Courses = () => {
-  const { courses, loading, updateCourse, deleteCourse } = useCourses();
+  const { courses, loading, updateCourse, deleteCourse, addCourse, refetch } = useCourses();
   const { categories } = useCourseCategories();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -28,6 +30,7 @@ export const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [editingCourse, setEditingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
+  const [creatingCourse, setCreatingCourse] = useState(false);
 
   const isAdmin = user?.user_metadata?.role === 'admin';
 
@@ -44,18 +47,20 @@ export const Courses = () => {
     const { error } = await updateCourse(editingCourse.id, courseData);
     if (!error) {
       setEditingCourse(null);
+      refetch();
     }
   };
 
   const handleDeleteCourse = async () => {
     if (!deletingCourse) return;
-    
+
     const { error } = await deleteCourse(deletingCourse.id);
     if (!error) {
       toast({
         title: 'Sucesso',
         description: 'Curso excluído com sucesso!',
       });
+      refetch();
     } else {
       toast({
         title: 'Erro',
@@ -64,6 +69,24 @@ export const Courses = () => {
       });
     }
     setDeletingCourse(null);
+  };
+
+  const handleCreateCourse = async (courseData) => {
+    const { error } = await addCourse(courseData);
+    if (!error) {
+      toast({
+        title: 'Sucesso',
+        description: 'Curso criado com sucesso!',
+      });
+      setCreatingCourse(false);
+      refetch();
+    } else {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao criar curso. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleClearFilters = () => {
@@ -81,13 +104,22 @@ export const Courses = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Central de Aulas</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-extrabold mb-2 text-center sm:text-left">Central de Aulas</h1>
+          <p className="text-muted-foreground text-center sm:text-left">
             Acesse todo o conteúdo exclusivo da Fábrica de Views
           </p>
         </div>
+        {isAdmin && (
+          <Button
+            className="flex gap-2 items-center"
+            onClick={() => setCreatingCourse(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Aula
+          </Button>
+        )}
       </div>
 
       <CourseFilters
@@ -114,6 +146,15 @@ export const Courses = () => {
         open={!!editingCourse}
         onOpenChange={(open) => !open && setEditingCourse(null)}
         onSave={handleEditCourse}
+      />
+
+      {/* Dialog de Criação */}
+      <CourseEditDialog
+        course={null}
+        open={creatingCourse}
+        onOpenChange={(open) => !open && setCreatingCourse(false)}
+        onSave={handleCreateCourse}
+        actionLabel="Adicionar Aula"
       />
 
       {/* Dialog de Confirmação de Exclusão */}

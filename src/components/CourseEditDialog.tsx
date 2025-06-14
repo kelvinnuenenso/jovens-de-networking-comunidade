@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -29,11 +28,12 @@ interface CourseEditDialogProps {
   onSave: (courseData: Partial<Course>) => Promise<void>;
 }
 
-export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
+export const CourseEditDialog: React.FC<CourseEditDialogProps & { actionLabel?: string }> = ({
   course,
   open,
   onOpenChange,
   onSave,
+  actionLabel = 'Salvar Alterações',
 }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -59,8 +59,19 @@ export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
         thumbnail_url: course.thumbnail_url || '',
         video_url: course.video_url || '',
       });
+    } else {
+      // Limpar form ao criar novo curso
+      setFormData({
+        title: '',
+        description: '',
+        instructor: '',
+        duration: '',
+        category: '',
+        thumbnail_url: '',
+        video_url: '',
+      });
     }
-  }, [course]);
+  }, [course, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +103,7 @@ export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Curso</DialogTitle>
+          <DialogTitle>{course ? 'Editar Curso' : 'Adicionar Aula'}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -151,7 +162,7 @@ export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {categories
-                    .filter((category) => category.name && category.name.trim() !== '')
+                    .filter((category) => !!category.name && category.name.trim() !== '')
                     .map((category) => (
                       <SelectItem key={category.id} value={category.name}>
                         {category.icon} {category.name}
@@ -191,7 +202,7 @@ export const CourseEditDialog: React.FC<CourseEditDialogProps> = ({
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
+              {loading ? (course ? 'Salvando...' : 'Adicionando...') : actionLabel}
             </Button>
           </DialogFooter>
         </form>

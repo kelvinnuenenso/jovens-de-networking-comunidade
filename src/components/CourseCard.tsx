@@ -67,18 +67,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         )}
       </div>
       
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
-        <p className="text-sm text-muted-foreground">por {course.instructor}</p>
+      <CardHeader className="pb-2 flex flex-col items-center justify-center">
+        <CardTitle className="text-lg font-bold text-center line-clamp-2">{course.title}</CardTitle>
+        <p className="text-sm text-muted-foreground text-center">por {course.instructor}</p>
       </CardHeader>
       
       <CardContent>
         {course.description && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2 text-center">
             {course.description}
           </p>
         )}
-        
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <div className="flex items-center space-x-4">
             {course.duration && (
@@ -101,7 +100,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             )}
           </div>
         </div>
-        
         <Button className="w-full" size="sm">
           <Play className="w-4 h-4 mr-2" />
           Assistir Agora
