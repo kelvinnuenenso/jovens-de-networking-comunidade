@@ -1,11 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileText, Download, Star, Eye, Plus, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,18 +14,43 @@ interface Script {
   category: string;
   preview_text: string | null;
   full_content: string | null;
-  views_count: number | null;
-  downloads_count: number | null;
-  rating: number | null;
+  views_count: number;
+  downloads_count: number;
+  rating: number;
   created_at: string;
 }
 
+const mockScripts: Script[] = [
+  {
+    id: '1',
+    title: 'Roteiro para Vídeo de Review',
+    description: 'Modelo completo para criar reviews que convertem.',
+    category: 'Review',
+    preview_text: 'Olá pessoal! Hoje vou mostrar pra vocês...',
+    full_content: 'Conteúdo completo do roteiro...',
+    views_count: 150,
+    downloads_count: 45,
+    rating: 4.5,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Roteiro para Tutorial',
+    description: 'Estrutura perfeita para vídeos educativos.',
+    category: 'Tutorial',
+    preview_text: 'Neste vídeo você vai aprender...',
+    full_content: 'Conteúdo completo do roteiro...',
+    views_count: 200,
+    downloads_count: 80,
+    rating: 4.8,
+    created_at: new Date().toISOString()
+  }
+];
+
 export const Scripts = () => {
-  const [scripts, setScripts] = useState<Script[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [scripts, setScripts] = useState<Script[]>(mockScripts);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -38,90 +61,32 @@ export const Scripts = () => {
     full_content: ''
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchScripts();
-      checkAdminStatus();
-    }
-  }, [user]);
-
-  const checkAdminStatus = async () => {
-    if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      setIsAdmin(data?.role === 'admin');
-    }
-  };
-
-  const fetchScripts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('scripts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setScripts(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar roteiros:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      const { data, error } = await supabase
-        .from('scripts')
-        .insert([{
-          ...formData,
-          views_count: 0,
-          downloads_count: 0,
-          rating: 0
-        }])
-        .select()
-        .single();
+    const newScript: Script = {
+      id: Date.now().toString(),
+      ...formData,
+      views_count: 0,
+      downloads_count: 0,
+      rating: 0,
+      created_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
-
-      setScripts(prev => [data, ...prev]);
-      toast({
-        title: 'Roteiro adicionado com sucesso!',
-        description: 'O novo roteiro está disponível para download.'
-      });
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        preview_text: '',
-        full_content: ''
-      });
-      setShowAddForm(false);
-    } catch (error) {
-      toast({
-        title: 'Erro ao adicionar roteiro',
-        description: 'Tente novamente mais tarde.',
-        variant: 'destructive'
-      });
-    }
+    setScripts(prev => [newScript, ...prev]);
+    toast({
+      title: 'Roteiro adicionado com sucesso!',
+      description: 'O novo roteiro está disponível para download.'
+    });
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      preview_text: '',
+      full_content: ''
+    });
+    setShowAddForm(false);
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando roteiros...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -246,13 +211,13 @@ export const Scripts = () => {
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center space-x-1">
                       <Eye className="w-4 h-4" />
-                      <span>{script.views_count || 0} visualizações</span>
+                      <span>{script.views_count} visualizações</span>
                     </span>
                     <span className="flex items-center space-x-1">
                       <Download className="w-4 h-4" />
-                      <span>{script.downloads_count || 0} downloads</span>
+                      <span>{script.downloads_count} downloads</span>
                     </span>
-                    {script.rating && script.rating > 0 && (
+                    {script.rating > 0 && (
                       <span className="flex items-center space-x-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         <span>{script.rating}</span>

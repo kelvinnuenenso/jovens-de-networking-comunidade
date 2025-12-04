@@ -22,7 +22,7 @@ import { Plus } from 'lucide-react';
 export const Courses = () => {
   const { courses, loading, updateCourse, deleteCourse, addCourse, refetch } = useCourses();
   const { categories } = useCourseCategories();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,16 +30,6 @@ export const Courses = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
   const [creatingCourse, setCreatingCourse] = useState(false);
-
-  // Debug logs para verificar o usuário
-  console.log('Usuario atual:', user?.email);
-  console.log('User metadata:', user?.user_metadata);
-  console.log('User role:', user?.user_metadata?.role);
-  
-  // Verificação mais robusta de admin - incluindo email específico
-  const isAdmin = user?.user_metadata?.role === 'admin' || user?.email === 'kelvinviraliza@gmail.com';
-  
-  console.log('É admin?', isAdmin);
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

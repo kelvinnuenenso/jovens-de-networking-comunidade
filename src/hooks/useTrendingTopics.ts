@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 export interface TrendingTopic {
   id: string;
@@ -12,34 +10,43 @@ export interface TrendingTopic {
   is_active: boolean;
 }
 
+const mockTopics: TrendingTopic[] = [
+  {
+    id: '1',
+    title: '#TikTokGrowth',
+    description: 'Dicas para crescer no TikTok',
+    posts_count: 245,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '2',
+    title: '#VideoEditing',
+    description: 'Técnicas de edição de vídeo',
+    posts_count: 189,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  },
+  {
+    id: '3',
+    title: '#ContentCreator',
+    description: 'Vida de criador de conteúdo',
+    posts_count: 156,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: true
+  }
+];
+
 export const useTrendingTopics = () => {
-  const [topics, setTopics] = useState<TrendingTopic[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchTopics();
-  }, []);
-
-  const fetchTopics = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('trending_topics')
-        .select('*')
-        .eq('is_active', true)
-        .order('posts_count', { ascending: false });
-
-      if (error) throw error;
-      setTopics(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar trending topics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [topics] = useState<TrendingTopic[]>(mockTopics);
+  const [loading] = useState(false);
 
   return {
     topics,
     loading,
-    refetch: fetchTopics
+    refetch: () => {}
   };
 };

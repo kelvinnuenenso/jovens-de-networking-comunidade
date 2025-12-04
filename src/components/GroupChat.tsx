@@ -1,12 +1,17 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+interface Message {
+  id: string;
+  content: string;
+  user_name: string;
+  created_at: string;
+}
 
 interface GroupChatProps {
   group: {
@@ -16,80 +21,29 @@ interface GroupChatProps {
 }
 
 export const GroupChat: React.FC<GroupChatProps> = ({ group }) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      content: 'Bem-vindo ao grupo! 🎉',
+      user_name: 'Sistema',
+      created_at: new Date().toISOString()
+    }
+  ]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchMessages();
-    joinGroupIfNeeded();
-  }, [group.id]);
-
-  const fetchMessages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('group_messages')
-        .select('*')
-        .eq('group_id', group.id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar mensagens:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const joinGroupIfNeeded = async () => {
-    if (!user) return;
-
-    try {
-      // Verificar se já é membro
-      const { data: existing } = await supabase
-        .from('group_members')
-        .select('id')
-        .eq('group_id', group.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (!existing) {
-        // Entrar no grupo
-        await supabase
-          .from('group_members')
-          .insert({
-            group_id: group.id,
-            user_id: user.id
-          });
-      }
-    } catch (error) {
-      console.error('Erro ao entrar no grupo:', error);
-    }
-  };
-
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!newMessage.trim() || !user) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('group_messages')
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          content: newMessage
-        })
-        .select()
-        .single();
+    const message: Message = {
+      id: Date.now().toString(),
+      content: newMessage,
+      user_name: user.email || 'Usuário',
+      created_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
-
-      setMessages(prev => [...prev, data]);
-      setNewMessage('');
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-    }
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -99,10 +53,6 @@ export const GroupChat: React.FC<GroupChatProps> = ({ group }) => {
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-4">Carregando mensagens...</div>;
-  }
-
   return (
     <div className="flex flex-col h-96">
       {/* Mensagens */}
@@ -111,11 +61,13 @@ export const GroupChat: React.FC<GroupChatProps> = ({ group }) => {
           {messages.map((message) => (
             <div key={message.id} className="flex items-start space-x-3">
               <Avatar className="w-8 h-8">
-                <AvatarFallback className="text-xs">U</AvatarFallback>
+                <AvatarFallback className="text-xs">
+                  {message.user_name.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-sm font-medium">Usuário</span>
+                  <span className="text-sm font-medium">{message.user_name}</span>
                   <span className="text-xs text-muted-foreground">
                     {new Date(message.created_at).toLocaleTimeString()}
                   </span>
