@@ -1,6 +1,4 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 export interface SearchResult {
   id: string;
@@ -9,6 +7,14 @@ export interface SearchResult {
   description?: string;
   category?: string;
 }
+
+const mockData: SearchResult[] = [
+  { id: '1', title: 'Fundamentos da Edição de Vídeo', type: 'course', category: 'Edição' },
+  { id: '2', title: 'Como Viralizar no TikTok', type: 'course', category: 'Marketing' },
+  { id: '3', title: 'Roteiro para Review', type: 'script', category: 'Review' },
+  { id: '4', title: 'Workshop de Edição', type: 'event' },
+  { id: '5', title: 'Desafio 7 Dias', type: 'challenge' }
+];
 
 export const useSearch = () => {
   const [query, setQuery] = useState('');
@@ -21,55 +27,17 @@ export const useSearch = () => {
       return;
     }
 
+    setLoading(true);
     const timeoutId = setTimeout(() => {
-      performSearch(query);
+      const filtered = mockData.filter(item => 
+        item.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setResults(filtered);
+      setLoading(false);
     }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [query]);
-
-  const performSearch = async (searchQuery: string) => {
-    setLoading(true);
-    try {
-      const searchTerm = `%${searchQuery}%`;
-      
-      const [coursesRes, scriptsRes, eventsRes, challengesRes] = await Promise.all([
-        supabase
-          .from('courses')
-          .select('id, title, description, category')
-          .ilike('title', searchTerm)
-          .limit(5),
-        supabase
-          .from('scripts')
-          .select('id, title, description, category')
-          .ilike('title', searchTerm)
-          .limit(5),
-        supabase
-          .from('events')
-          .select('id, title, description')
-          .ilike('title', searchTerm)
-          .limit(5),
-        supabase
-          .from('challenges')
-          .select('id, title, description')
-          .ilike('title', searchTerm)
-          .limit(5)
-      ]);
-
-      const searchResults: SearchResult[] = [
-        ...(coursesRes.data || []).map(item => ({ ...item, type: 'course' as const })),
-        ...(scriptsRes.data || []).map(item => ({ ...item, type: 'script' as const })),
-        ...(eventsRes.data || []).map(item => ({ ...item, type: 'event' as const })),
-        ...(challengesRes.data || []).map(item => ({ ...item, type: 'challenge' as const }))
-      ];
-
-      setResults(searchResults);
-    } catch (error) {
-      console.error('Erro na busca:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return {
     query,

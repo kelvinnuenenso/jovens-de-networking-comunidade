@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface Course {
@@ -17,87 +15,74 @@ export interface Course {
   created_at: string;
 }
 
+const mockCourses: Course[] = [
+  {
+    id: '1',
+    title: 'Fundamentos da Edição de Vídeo',
+    description: 'Aprenda os conceitos básicos de edição para criar vídeos profissionais.',
+    instructor: 'Kelvin',
+    duration: '2h 30min',
+    category: 'Edição de Vídeo',
+    thumbnail_url: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400',
+    video_url: null,
+    rating: 4.8,
+    students_count: 1250,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Como Viralizar no TikTok',
+    description: 'Estratégias comprovadas para crescer no TikTok.',
+    instructor: 'Kelvin',
+    duration: '1h 45min',
+    category: 'Marketing Digital',
+    thumbnail_url: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400',
+    video_url: null,
+    rating: 4.9,
+    students_count: 2800,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    title: 'Criando Thumbnails que Convertem',
+    description: 'Domine a arte de criar miniaturas irresistíveis.',
+    instructor: 'Kelvin',
+    duration: '1h 15min',
+    category: 'Criação de Conteúdo',
+    thumbnail_url: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400',
+    video_url: null,
+    rating: 4.7,
+    students_count: 980,
+    created_at: new Date().toISOString()
+  }
+];
+
 export const useCourses = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>(mockCourses);
+  const [loading] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchCourses();
-    }
-  }, [user]);
-
-  const fetchCourses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCourses(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar aulas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const addCourse = async (course: Omit<Course, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('courses')
-        .insert([course])
-        .select()
-        .single();
+    const newCourse: Course = {
+      id: Date.now().toString(),
+      ...course,
+      created_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
-
-      setCourses(prev => [data, ...prev]);
-      return { data, error: null };
-    } catch (error) {
-      console.error('Erro ao adicionar aula:', error);
-      return { data: null, error };
-    }
+    setCourses(prev => [newCourse, ...prev]);
+    return { data: newCourse, error: null };
   };
 
   const updateCourse = async (id: string, updates: Partial<Course>) => {
-    try {
-      const { data, error } = await supabase
-        .from('courses')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setCourses(prev => prev.map(course => 
-        course.id === id ? data : course
-      ));
-      return { data, error: null };
-    } catch (error) {
-      console.error('Erro ao atualizar aula:', error);
-      return { data: null, error };
-    }
+    setCourses(prev => prev.map(course => 
+      course.id === id ? { ...course, ...updates } : course
+    ));
+    return { data: { id, ...updates }, error: null };
   };
 
   const deleteCourse = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCourses(prev => prev.filter(course => course.id !== id));
-      return { error: null };
-    } catch (error) {
-      console.error('Erro ao deletar aula:', error);
-      return { error };
-    }
+    setCourses(prev => prev.filter(course => course.id !== id));
+    return { error: null };
   };
 
   return {
@@ -106,6 +91,6 @@ export const useCourses = () => {
     addCourse,
     updateCourse,
     deleteCourse,
-    refetch: fetchCourses
+    refetch: () => {}
   };
 };

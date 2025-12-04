@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface MessageGroup {
@@ -13,91 +11,52 @@ export interface MessageGroup {
   created_at: string;
 }
 
-export interface GroupMessage {
-  id: string;
-  group_id: string;
-  user_id: string;
-  content: string;
-  message_type: string;
-  created_at: string;
-}
+const mockGroups: MessageGroup[] = [
+  {
+    id: '1',
+    name: 'Geral',
+    description: 'Grupo geral da comunidade',
+    image_url: null,
+    created_by: 'admin',
+    is_private: false,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    name: 'Dúvidas',
+    description: 'Tire suas dúvidas sobre criação de conteúdo',
+    image_url: null,
+    created_by: 'admin',
+    is_private: false,
+    created_at: new Date().toISOString()
+  }
+];
 
 export const useMessageGroups = () => {
-  const [groups, setGroups] = useState<MessageGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [groups, setGroups] = useState<MessageGroup[]>(mockGroups);
+  const [loading] = useState(false);
   const { user } = useAuth();
-
-  useEffect(() => {
-    fetchGroups();
-  }, [user]);
-
-  const fetchGroups = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('message_groups')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setGroups(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar grupos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const joinGroup = async (groupId: string) => {
     if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: groupId,
-          user_id: user.id
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Erro ao entrar no grupo:', error);
-    }
+    console.log('Joined group:', groupId);
   };
 
   const createGroup = async (name: string, description?: string, isPrivate = false) => {
     if (!user) return { error: 'Usuário não autenticado' };
 
-    try {
-      const { data, error } = await supabase
-        .from('message_groups')
-        .insert({
-          name,
-          description,
-          created_by: user.id,
-          is_private: isPrivate
-        })
-        .select()
-        .single();
+    const newGroup: MessageGroup = {
+      id: Date.now().toString(),
+      name,
+      description: description || null,
+      image_url: null,
+      created_by: user.id,
+      is_private: isPrivate,
+      created_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
-
-      // Adicionar criador como membro
-      await supabase
-        .from('group_members')
-        .insert({
-          group_id: data.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-
-      setGroups(prev => [data, ...prev]);
-      return { data };
-    } catch (error) {
-      console.error('Erro ao criar grupo:', error);
-      return { error };
-    }
+    setGroups(prev => [newGroup, ...prev]);
+    return { data: newGroup };
   };
 
   return {
@@ -105,6 +64,6 @@ export const useMessageGroups = () => {
     loading,
     joinGroup,
     createGroup,
-    refetch: fetchGroups
+    refetch: () => {}
   };
 };

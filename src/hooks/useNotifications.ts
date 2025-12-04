@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface Notification {
@@ -11,70 +9,39 @@ export interface Notification {
   created_at: string;
 }
 
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'Bem-vindo!',
+    message: 'Seja bem-vindo à Fábrica de Views!',
+    is_read: false,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Nova aula disponível',
+    message: 'Uma nova aula foi adicionada ao curso de edição.',
+    is_read: true,
+    created_at: new Date(Date.now() - 86400000).toISOString()
+  }
+];
+
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [loading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(mockNotifications.filter(n => !n.is_read).length);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user]);
-
-  const fetchNotifications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setNotifications(data || []);
-      setUnreadCount((data || []).filter(n => !n.is_read).length);
-    } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Erro ao marcar como lida:', error);
-    }
+    setNotifications(prev => 
+      prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
   const markAllAsRead = async () => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user?.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Erro ao marcar todas como lidas:', error);
-    }
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
   };
 
   return {
@@ -83,6 +50,6 @@ export const useNotifications = () => {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    refetch: fetchNotifications
+    refetch: () => {}
   };
 };

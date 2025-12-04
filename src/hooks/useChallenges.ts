@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface Challenge {
@@ -24,90 +22,72 @@ export interface UserChallenge {
   completed_at: string | null;
 }
 
+const mockChallenges: Challenge[] = [
+  {
+    id: '1',
+    title: 'Desafio 7 Dias de Conteúdo',
+    description: 'Poste um vídeo por dia durante 7 dias consecutivos.',
+    duration_days: 7,
+    points: 100,
+    reward: 'Badge de Consistência',
+    status: 'active',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Desafio 1000 Seguidores',
+    description: 'Conquiste seus primeiros 1000 seguidores.',
+    duration_days: 30,
+    points: 500,
+    reward: 'Mentoria Individual',
+    status: 'active',
+    created_at: new Date().toISOString()
+  }
+];
+
 export const useChallenges = () => {
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>(mockChallenges);
   const [userChallenges, setUserChallenges] = useState<UserChallenge[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchChallenges();
-    if (user) {
-      fetchUserChallenges();
-    }
-  }, [user]);
-
-  const fetchChallenges = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setChallenges(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar desafios:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserChallenges = async () => {
-    if (!user) return;
-
-    try {
-      // Simular dados para user_challenges já que a tabela não existe ainda
-      setUserChallenges([]);
-    } catch (error) {
-      console.error('Erro ao buscar desafios do usuário:', error);
-    }
-  };
-
   const createChallenge = async (challengeData: Omit<Challenge, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('challenges')
-        .insert({
-          ...challengeData,
-          status: 'active'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setChallenges(prev => [data, ...prev]);
-      return { data };
-    } catch (error) {
-      console.error('Erro ao criar desafio:', error);
-      return { error };
-    }
+    const newChallenge: Challenge = {
+      id: Date.now().toString(),
+      ...challengeData,
+      created_at: new Date().toISOString()
+    };
+    
+    setChallenges(prev => [newChallenge, ...prev]);
+    return { data: newChallenge };
   };
 
   const joinChallenge = async (challengeId: string) => {
     if (!user) return { error: 'Usuário não autenticado' };
 
-    try {
-      // Simular participação no desafio
-      console.log('Participando do desafio:', challengeId);
-      return { data: { success: true } };
-    } catch (error) {
-      console.error('Erro ao participar do desafio:', error);
-      return { error };
-    }
+    const userChallenge: UserChallenge = {
+      id: Date.now().toString(),
+      user_id: user.id,
+      challenge_id: challengeId,
+      status: 'active',
+      progress: 0,
+      started_at: new Date().toISOString(),
+      completed_at: null
+    };
+
+    setUserChallenges(prev => [...prev, userChallenge]);
+    return { data: userChallenge };
   };
 
   const updateChallengeProgress = async (userChallengeId: string, progress: number) => {
-    try {
-      // Simular atualização de progresso
-      console.log('Atualizando progresso:', userChallengeId, progress);
-      return { data: { success: true } };
-    } catch (error) {
-      console.error('Erro ao atualizar progresso:', error);
-      return { error };
-    }
+    setUserChallenges(prev => 
+      prev.map(uc => 
+        uc.id === userChallengeId 
+          ? { ...uc, progress, status: progress >= 100 ? 'completed' : 'active' as const }
+          : uc
+      )
+    );
+    return { data: { success: true } };
   };
 
   return {
@@ -117,6 +97,6 @@ export const useChallenges = () => {
     createChallenge,
     joinChallenge,
     updateChallengeProgress,
-    refetch: fetchChallenges
+    refetch: () => {}
   };
 };

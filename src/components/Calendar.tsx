@@ -1,13 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Clock, Users, Calendar as CalendarIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Event {
@@ -23,12 +21,39 @@ interface Event {
   created_at: string;
 }
 
+// Mock data for events
+const mockEvents: Event[] = [
+  {
+    id: '1',
+    title: 'Workshop: Como Criar Vídeos Virais',
+    description: 'Aprenda técnicas avançadas para criar conteúdo que engaja.',
+    date: '2024-12-15',
+    time: '19:00',
+    event_type: 'workshop',
+    duration_minutes: 90,
+    max_participants: 50,
+    created_by: null,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    title: 'Live: Q&A com Kelvin',
+    description: 'Tire suas dúvidas ao vivo sobre estratégias de crescimento.',
+    date: '2024-12-20',
+    time: '20:00',
+    event_type: 'live',
+    duration_minutes: 60,
+    max_participants: null,
+    created_by: null,
+    created_at: new Date().toISOString()
+  }
+];
+
 export const Calendar = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<Event[]>(mockEvents);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -40,56 +65,23 @@ export const Calendar = () => {
     max_participants: null as number | null
   });
 
-  const isAdmin = true; // Simplificado - implementar verificação real depois
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true })
-        .order('time', { ascending: true });
-
-      if (error) throw error;
-      setEvents(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar eventos:', error);
-    } finally {
-      setLoading(false);
+  const handleSubmit = () => {
+    if (editingEvent) {
+      setEvents(prev => prev.map(e => 
+        e.id === editingEvent.id 
+          ? { ...e, ...formData }
+          : e
+      ));
+    } else {
+      const newEvent: Event = {
+        id: Date.now().toString(),
+        ...formData,
+        created_by: null,
+        created_at: new Date().toISOString()
+      };
+      setEvents(prev => [...prev, newEvent]);
     }
-  };
-
-  const handleSubmit = async () => {
-    if (!user) return;
-
-    try {
-      if (editingEvent) {
-        const { error } = await supabase
-          .from('events')
-          .update(formData)
-          .eq('id', editingEvent.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('events')
-          .insert({
-            ...formData,
-            created_by: user.id
-          });
-
-        if (error) throw error;
-      }
-
-      fetchEvents();
-      resetForm();
-    } catch (error) {
-      console.error('Erro ao salvar evento:', error);
-    }
+    resetForm();
   };
 
   const handleEdit = (event: Event) => {
@@ -106,19 +98,9 @@ export const Calendar = () => {
     setShowCreateDialog(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja deletar este evento?')) {
-      try {
-        const { error } = await supabase
-          .from('events')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-        fetchEvents();
-      } catch (error) {
-        console.error('Erro ao deletar evento:', error);
-      }
+      setEvents(prev => prev.filter(e => e.id !== id));
     }
   };
 
@@ -143,10 +125,6 @@ export const Calendar = () => {
   const formatTime = (timeStr: string) => {
     return timeStr.substring(0, 5);
   };
-
-  if (loading) {
-    return <div className="text-center py-8">Carregando eventos...</div>;
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

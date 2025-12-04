@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserStats {
@@ -12,48 +10,15 @@ export interface UserStats {
 }
 
 export const useUserStats = () => {
-  const [stats, setStats] = useState<UserStats>({
-    total_points: 0,
-    courses_completed: 0,
-    challenges_completed: 0,
-    days_in_community: 0,
-    total_activities: 0
+  const [stats] = useState<UserStats>({
+    total_points: 150,
+    courses_completed: 3,
+    challenges_completed: 1,
+    days_in_community: 7,
+    total_activities: 25
   });
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchUserStats();
-    }
-  }, [user]);
-
-  const fetchUserStats = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase.rpc('get_user_stats', {
-        p_user_id: user.id
-      });
-
-      if (error) throw error;
-      
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        const statsData = data as any;
-        setStats({
-          total_points: Number(statsData.total_points) || 0,
-          courses_completed: Number(statsData.courses_completed) || 0,
-          challenges_completed: Number(statsData.challenges_completed) || 0,
-          days_in_community: Number(statsData.days_in_community) || 0,
-          total_activities: Number(statsData.total_activities) || 0
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { stats, loading, refetch: fetchUserStats };
+  return { stats, loading, refetch: () => {} };
 };

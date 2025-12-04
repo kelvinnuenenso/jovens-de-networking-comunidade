@@ -1,18 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserProfile {
   id: string;
-  email: string;
   full_name: string | null;
-  bio: string | null;
   avatar_url: string | null;
-  tiktok_username: string | null;
-  points: number;
-  badges: string[];
-  created_at: string;
 }
 
 export const useUserProfile = () => {
@@ -23,6 +16,8 @@ export const useUserProfile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -32,7 +27,7 @@ export const useUserProfile = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, avatar_url')
         .eq('id', user.id)
         .single();
 
@@ -40,6 +35,12 @@ export const useUserProfile = () => {
       setProfile(data);
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
+      // Use mock data if profile doesn't exist yet
+      setProfile({
+        id: user.id,
+        full_name: user.user_metadata?.full_name || user.email,
+        avatar_url: null
+      });
     } finally {
       setLoading(false);
     }

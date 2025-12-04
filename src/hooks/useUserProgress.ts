@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserProgress {
@@ -17,120 +15,77 @@ export interface UserProgress {
 
 export const useUserProgress = () => {
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      fetchUserProgress();
-    }
-  }, [user]);
-
-  const fetchUserProgress = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setUserProgress(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar progresso:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const markAsCompleted = async (courseId: string) => {
     if (!user) return;
     
-    try {
-      const { data, error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: user.id,
-          course_id: courseId,
-          is_completed: true,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+    const progress: UserProgress = {
+      id: Date.now().toString(),
+      user_id: user.id,
+      course_id: courseId,
+      is_completed: true,
+      is_favorite: false,
+      watch_time: 0,
+      rating: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
-      
-      setUserProgress(prev => {
-        const existing = prev.find(p => p.course_id === courseId);
-        if (existing) {
-          return prev.map(p => p.course_id === courseId ? data : p);
-        }
-        return [...prev, data];
-      });
-    } catch (error) {
-      console.error('Erro ao marcar como concluída:', error);
-    }
+    setUserProgress(prev => {
+      const existing = prev.find(p => p.course_id === courseId);
+      if (existing) {
+        return prev.map(p => p.course_id === courseId ? { ...p, is_completed: true } : p);
+      }
+      return [...prev, progress];
+    });
   };
 
   const toggleFavorite = async (courseId: string) => {
     if (!user) return;
     
-    try {
-      const existing = userProgress.find(p => p.course_id === courseId);
-      const isFavorite = existing ? !existing.is_favorite : true;
-
-      const { data, error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: user.id,
-          course_id: courseId,
-          is_favorite: isFavorite,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setUserProgress(prev => {
-        if (existing) {
-          return prev.map(p => p.course_id === courseId ? data : p);
-        }
-        return [...prev, data];
-      });
-    } catch (error) {
-      console.error('Erro ao favoritar:', error);
-    }
+    setUserProgress(prev => {
+      const existing = prev.find(p => p.course_id === courseId);
+      if (existing) {
+        return prev.map(p => p.course_id === courseId ? { ...p, is_favorite: !p.is_favorite } : p);
+      }
+      const progress: UserProgress = {
+        id: Date.now().toString(),
+        user_id: user.id,
+        course_id: courseId,
+        is_completed: false,
+        is_favorite: true,
+        watch_time: 0,
+        rating: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      return [...prev, progress];
+    });
   };
 
   const rateCourse = async (courseId: string, rating: number) => {
     if (!user) return;
     
-    try {
-      const { data, error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: user.id,
-          course_id: courseId,
-          rating,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setUserProgress(prev => {
-        const existing = prev.find(p => p.course_id === courseId);
-        if (existing) {
-          return prev.map(p => p.course_id === courseId ? data : p);
-        }
-        return [...prev, data];
-      });
-    } catch (error) {
-      console.error('Erro ao avaliar aula:', error);
-    }
+    setUserProgress(prev => {
+      const existing = prev.find(p => p.course_id === courseId);
+      if (existing) {
+        return prev.map(p => p.course_id === courseId ? { ...p, rating } : p);
+      }
+      const progress: UserProgress = {
+        id: Date.now().toString(),
+        user_id: user.id,
+        course_id: courseId,
+        is_completed: false,
+        is_favorite: false,
+        watch_time: 0,
+        rating,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      return [...prev, progress];
+    });
   };
 
   return {
@@ -139,6 +94,6 @@ export const useUserProgress = () => {
     markAsCompleted,
     toggleFavorite,
     rateCourse,
-    refetch: fetchUserProgress
+    refetch: () => {}
   };
 };

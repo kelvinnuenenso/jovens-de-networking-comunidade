@@ -1,12 +1,15 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+type AppRole = 'admin' | 'moderator' | 'user';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  userRole: AppRole | null;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -26,23 +29,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<AppRole | null>(null);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+      return data?.role as AppRole;
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    // Configurar listener de mudanças de autenticação
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Defer role fetching to avoid deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserRole(session.user.id).then(role => {
+              setUserRole(role);
+            });
+          }, 0);
+        } else {
+          setUserRole(null);
+        }
       }
     );
 
-    // Verificar sessão existente
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      if (session?.user) {
+        fetchUserRole(session.user.id).then(role => {
+          setUserRole(role);
+        });
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -77,12 +117,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       console.error('Error signing out:', error);
     }
+    setUserRole(null);
   };
 
   const value = {
     user,
     session,
     loading,
+    userRole,
+    isAdmin: userRole === 'admin',
     signIn,
     signUp,
     signOut,

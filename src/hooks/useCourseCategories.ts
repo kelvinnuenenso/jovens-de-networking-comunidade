@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 export interface CourseCategory {
   id: string;
@@ -11,33 +9,40 @@ export interface CourseCategory {
   created_at: string;
 }
 
+const mockCategories: CourseCategory[] = [
+  {
+    id: '1',
+    name: 'Edição de Vídeo',
+    description: 'Aprenda a editar vídeos profissionais',
+    color: '#3B82F6',
+    icon: 'video',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    name: 'Marketing Digital',
+    description: 'Estratégias de crescimento nas redes',
+    color: '#10B981',
+    icon: 'trending-up',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    name: 'Criação de Conteúdo',
+    description: 'Como criar conteúdo que engaja',
+    color: '#F59E0B',
+    icon: 'sparkles',
+    created_at: new Date().toISOString()
+  }
+];
+
 export const useCourseCategories = () => {
-  const [categories, setCategories] = useState<CourseCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('course_categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar categorias:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [categories] = useState<CourseCategory[]>(mockCategories);
+  const [loading] = useState(false);
 
   return {
     categories,
     loading,
-    refetch: fetchCategories
+    refetch: () => {}
   };
 };
