@@ -1,73 +1,53 @@
-# Welcome to your Lovable project
+# Jovens de Networking - Comunidade
 
-## Project info
+Plataforma da comunidade Jovens de Networking para colaboração, aprendizado e conexões profissionais.
 
-**URL**: https://lovable.dev/projects/62efa361-3c44-457c-9308-bbe2b58ba185
+## Tecnologias Utilizadas
 
-## How can I edit this code?
+- **Vite** + **React** (TypeScript)
+- **Supabase** (Autenticação e Banco de Dados)
+- **Tailwind CSS** + **shadcn/ui** (Interface)
+- **React Query** (Gerenciamento de Estado)
+- **Vitest** (Testes)
 
-There are several ways of editing your application.
+## Como Começar Localmente
 
-**Use Lovable**
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/kelvinnuenenso/jovens-de-networking-comunidade.git
+   cd jovens-de-networking-comunidade
+   ```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/62efa361-3c44-457c-9308-bbe2b58ba185) and start prompting.
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+3. **Configure as variáveis de ambiente:**
+   - Copie o arquivo `.env.example` para `.env`.
+   - Preencha com suas credenciais do Supabase.
 
-**Use your preferred IDE**
+4. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Scripts Disponíveis
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- `npm run dev`: Inicia o servidor local.
+- `npm run build`: Gera a build de produção.
+- `npm run lint`: Executa o linter.
+- `npm run test`: Executa os testes unitários.
 
-Follow these steps:
+## Deploy
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+O projeto está configurado para ser buildado automaticamente via GitHub Actions. Para fazer o deploy em plataformas como Vercel ou Netlify, basta conectar este repositório do GitHub e configurar as variáveis de ambiente necessárias.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Variáveis de Ambiente Necessárias para Deploy:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Licença
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/62efa361-3c44-457c-9308-bbe2b58ba185) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Este projeto é privado para a comunidade Jovens de Networking.
